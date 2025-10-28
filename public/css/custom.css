@@ -1,0 +1,11 @@
+/* Lightweight custom overrides without build step */
+/* Example: change primary color, tweak spacings, etc. */
+
+:root {
+  /* Override Bootstrap primary if desired */
+  /* --bs-primary: #0d6efd; */
+}
+
+/* Place your small overrides below */
+/* .app-header { box-shadow: none; } */
+
