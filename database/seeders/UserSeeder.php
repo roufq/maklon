@@ -16,13 +16,13 @@ class UserSeeder extends Seeder
     public function run(): void
     {
         $tenant = Tenant::firstOrCreate(
-            ['domain' => 'manajemen.com'],
+            ['domain' => 'maklon.com'],
             ['name' => 'Default Tenant']
         );
         $tenantId = $tenant->id;
         // Create Admin User
         $admin = User::firstOrCreate(
-            ['email' => 'admin@manajemen.com'],
+            ['email' => 'admin@maklon.com'],
             ['name' => 'Admin User','password' => Hash::make('password'),'email_verified_at' => now(),'tenant_id' => $tenantId]
         );
         if (!$admin->tenant_id) { $admin->tenant_id = $tenantId; $admin->save(); }
@@ -30,7 +30,7 @@ class UserSeeder extends Seeder
 
         // Create Manager User
         $manager = User::firstOrCreate(
-            ['email' => 'manager@manajemen.com'],
+            ['email' => 'manager@maklon.com'],
             ['name' => 'Manager User','password' => Hash::make('password'),'email_verified_at' => now(),'tenant_id' => $tenantId]
         );
         if (!$manager->tenant_id) { $manager->tenant_id = $tenantId; $manager->save(); }
@@ -38,7 +38,7 @@ class UserSeeder extends Seeder
 
         // Create Developer User
         $developer = User::firstOrCreate(
-            ['email' => 'developer@manajemen.com'],
+            ['email' => 'developer@maklon.com'],
             ['name' => 'Developer User','password' => Hash::make('password'),'email_verified_at' => now(),'tenant_id' => $tenantId]
         );
         if (!$developer->tenant_id) { $developer->tenant_id = $tenantId; $developer->save(); }
@@ -46,7 +46,7 @@ class UserSeeder extends Seeder
 
         // Create Client User
         $client = User::firstOrCreate(
-            ['email' => 'client@manajemen.com'],
+            ['email' => 'client@maklon.com'],
             ['name' => 'Client User','password' => Hash::make('password'),'email_verified_at' => now(),'tenant_id' => $tenantId]
         );
         if (!$client->tenant_id) { $client->tenant_id = $tenantId; $client->save(); }
