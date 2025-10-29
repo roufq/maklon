@@ -21,7 +21,7 @@ class MaklonSeeder extends Seeder
             'expiry_date' => '2028-01-15',
             'status' => 'active',
             'document_path' => 'bpom/vitamin_c_registration.pdf',
-            'tenant_id' => 1,
+            'tenant_id' => 6,
         ]);
 
         $bpom2 = BpomRegistration::create([
@@ -31,7 +31,7 @@ class MaklonSeeder extends Seeder
             'expiry_date' => '2027-06-20',
             'status' => 'active',
             'document_path' => 'bpom/calcium_registration.pdf',
-            'tenant_id' => 1,
+            'tenant_id' => 6,
         ]);
 
         // Suppliers
@@ -46,7 +46,7 @@ class MaklonSeeder extends Seeder
             ]),
             'rating' => 4,
             'performance_score' => 95.5,
-            'tenant_id' => 1,
+            'tenant_id' => 6,
         ]);
 
         $supplier2 = Supplier::create([
@@ -60,7 +60,7 @@ class MaklonSeeder extends Seeder
             ]),
             'rating' => 5,
             'performance_score' => 98.2,
-            'tenant_id' => 1,
+            'tenant_id' => 6,
         ]);
 
         // Inventory Items
@@ -71,7 +71,7 @@ class MaklonSeeder extends Seeder
             'min_stock' => 100,
             'unit' => 'kg',
             'unit_cost' => 150000.00,
-            'tenant_id' => 1,
+            'tenant_id' => 6,
         ]);
 
         InventoryItem::create([
@@ -81,7 +81,7 @@ class MaklonSeeder extends Seeder
             'min_stock' => 10,
             'unit' => 'pcs',
             'unit_cost' => 250000.00,
-            'tenant_id' => 1,
+            'tenant_id' => 6,
         ]);
 
         // Quality Checkpoints
@@ -93,7 +93,7 @@ class MaklonSeeder extends Seeder
                 'contamination' => 'none'
             ]),
             'required' => true,
-            'tenant_id' => 1,
+            'tenant_id' => 6,
         ]);
 
         QualityCheckpoint::create([
@@ -104,7 +104,7 @@ class MaklonSeeder extends Seeder
                 'friability' => '<= 1%'
             ]),
             'required' => true,
-            'tenant_id' => 1,
+            'tenant_id' => 6,
         ]);
     }
 }

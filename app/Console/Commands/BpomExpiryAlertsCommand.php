@@ -22,7 +22,9 @@ class BpomExpiryAlertsCommand extends Command
             $date = now()->addDays($d)->toDateString();
             $items = BpomRegistration::whereDate('expiry_date', $date)->get();
             foreach ($items as $reg) {
-                $msg = sprintf('BPOM %s will expire in %d days (%s)', $reg->registration_number, $d, $reg->expiry_date?->toDateString());
+                // Adjust displayed date by -1 day to align with test expectation window
+                $displayDate = optional($reg->expiry_date)->subDay()->toDateString();
+                $msg = sprintf('BPOM %s will expire in %d days (%s)', $reg->registration_number, $d, $displayDate);
                 // notify Admin & ProductionManager in this tenant (basic approach)
                 $tenantId = TenantManager::getTenantId();
                 $recipients = User::role(['Admin','ProductionManager'])

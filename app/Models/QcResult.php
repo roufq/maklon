@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Models\Concerns\BelongsToTenant as TenantScope;
 
 class QcResult extends Model
 {
+    use HasFactory;
+
     protected $fillable = ['tenant_id','production_batch_id','quality_checkpoint_id','status','notes','by_user_id'];
 
     public function batch(): BelongsTo { return $this->belongsTo(ProductionBatch::class, 'production_batch_id'); }

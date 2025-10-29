@@ -16,8 +16,8 @@ class BpomRegistration extends Model
     ];
 
     protected $casts = [
-        'approval_date' => 'date',
-        'expiry_date' => 'date',
+        'approval_date' => 'date:Y-m-d',
+        'expiry_date' => 'date:Y-m-d',
     ];
 
     public function batches(): HasMany

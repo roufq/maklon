@@ -10,10 +10,14 @@ use Illuminate\Support\Facades\Gate;
 
 class BpomRegistrationController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $this->authorizeView();
-        $items = BpomRegistration::orderByDesc('id')->paginate(15);
+        $items = BpomRegistration::query()
+            ->when($request->get('status'), fn($q,$s)=>$q->where('status',$s))
+            ->orderByDesc('id')
+            ->paginate(15)
+            ->withQueryString();
         return view('bpom.index', compact('items'));
     }
 
@@ -59,7 +63,8 @@ class BpomRegistrationController extends Controller
     public function show(BpomRegistration $bpom)
     {
         $this->authorizeView();
-        return view('bpom.show', ['item' => $bpom]);
+        // Provide both keys to satisfy different view/test expectations
+        return view('bpom.show', ['item' => $bpom, 'registration' => $bpom]);
     }
 
     public function edit(BpomRegistration $bpom)
@@ -103,20 +108,52 @@ class BpomRegistrationController extends Controller
         return redirect()->route('bpom.show', $bpom)->with('success','BPOM registration updated');
     }
 
+    public function export(Request $request)
+    {
+        $this->authorizeView();
+        $query = BpomRegistration::query()
+            ->when($request->status, fn($q,$s)=>$q->where('status',$s))
+            ->orderByDesc('id');
+        $filename = 'bpom-registrations-'.now()->format('Y-m-d').'.csv';
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="'.$filename.'"',
+        ];
+        $callback = function () use ($query) {
+            $out = fopen('php://output','w');
+            fputcsv($out, ['Product','Registration Number','Approval','Expiry','Status']);
+            $query->clone()->chunkById(1000, function($items) use ($out){
+                foreach ($items as $i) {
+                    fputcsv($out, [
+                        $i->product_name,
+                        $i->registration_number,
+                        optional($i->approval_date)->format('Y-m-d'),
+                        optional($i->expiry_date)->format('Y-m-d'),
+                        $i->status,
+                    ]);
+                }
+                if (function_exists('ob_flush')) { @ob_flush(); }
+                flush();
+            }, 'id');
+            fclose($out);
+        };
+        return response()->stream($callback, 200, $headers);
+    }
+
     public function destroy(BpomRegistration $bpom)
     {
         $this->authorizeDelete();
         if ($bpom->document_path && Storage::disk('local')->exists($bpom->document_path)) {
             Storage::disk('local')->delete($bpom->document_path);
         }
-        $id = $bpom->id;
-        $bpom->delete();
+        // Log audit BEFORE deletion to satisfy FK constraints
         BpomAudit::create([
-            'bpom_registration_id' => $id,
+            'bpom_registration_id' => $bpom->id,
             'user_id' => auth()->id(),
             'action' => 'deleted',
             'meta' => null,
         ]);
+        $bpom->delete();
         return redirect()->route('bpom.index')->with('success','BPOM registration deleted');
     }
 
@@ -178,5 +215,3 @@ class BpomRegistrationController extends Controller
         abort_unless(auth()->user()?->can('bpom.delete'), 403);
     }
 }
-
-

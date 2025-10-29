@@ -52,6 +52,19 @@
             "@php artisan config:clear --ansi",
             "@php artisan test"
         ],
+        "prod:optimize": [
+            "@php artisan config:cache",
+            "@php artisan route:cache",
+            "@php artisan view:cache",
+            "@php artisan event:cache",
+            "@php artisan optimize"
+        ],
+        "deploy": [
+            "@php artisan down --render=errors::503 || exit 0",
+            "@php artisan migrate --force",
+            "@php artisan prod:optimize || composer run prod:optimize",
+            "@php artisan up"
+        ],
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
             "@php artisan package:discover --ansi"

@@ -13,9 +13,8 @@ class QualityCheckpointFactory extends Factory
     {
         return [
             'name' => $this->faker->sentence(3),
-            'description' => $this->faker->paragraph(),
-            'stage_type' => $this->faker->randomElement(['cutting', 'mixing', 'filling', 'packaging', 'final']),
-            'is_required' => $this->faker->boolean(80), // 80% chance of being required
+            'criteria' => ['temperature' => '25-30°C', 'humidity' => '<50%'],
+            'required' => $this->faker->boolean(80), // 80% chance of being required
             'tenant_id' => 1, // Default tenant
         ];
     }

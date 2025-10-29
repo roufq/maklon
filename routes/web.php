@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\Auth\RegisterController as AuthRegisterController;
+use App\Http\Controllers\ReportController;
 
 // Guest routes (accessible without authentication)
 Route::middleware('guest')->group(function () {
@@ -48,6 +49,8 @@ Route::middleware(['auth', App\Http\Middleware\SetTenant::class, App\Http\Middle
         ->except(['show'])->middleware('permission:bpom.view|bpom.create|bpom.edit|bpom.delete');
     Route::get('bpom/{bpom}', [App\Http\Controllers\BpomRegistrationController::class, 'show'])
         ->name('bpom.show')->middleware('permission:bpom.view');
+    Route::get('bpom-export', [App\Http\Controllers\BpomRegistrationController::class, 'export'])
+        ->name('bpom.export')->middleware('permission:bpom.view');
     Route::get('bpom/{bpom}/download', [App\Http\Controllers\BpomRegistrationController::class, 'download'])
         ->name('bpom.download')->middleware('permission:bpom.view');
     Route::post('bpom/{bpom}/activate', [App\Http\Controllers\BpomRegistrationController::class, 'activate'])
@@ -62,6 +65,8 @@ Route::middleware(['auth', App\Http\Middleware\SetTenant::class, App\Http\Middle
     // Maklon: Suppliers
     Route::resource('suppliers', App\Http\Controllers\SupplierController::class)
         ->middleware('permission:supplier.view|supplier.create|supplier.edit|supplier.delete');
+    Route::get('suppliers-export', [App\Http\Controllers\SupplierController::class, 'export'])
+        ->name('suppliers.export')->middleware('permission:supplier.view');
 
     // Inventory (MVP)
     Route::resource('inventory', App\Http\Controllers\InventoryController::class)
@@ -190,7 +195,6 @@ Route::middleware(['auth', App\Http\Middleware\SetTenant::class, App\Http\Middle
     Route::get('reports/project-progress/export', [App\Http\Controllers\ReportController::class, 'exportProjectProgress'])->name('reports.exportProjectProgress')->middleware('permission:reports.view');
     Route::get('reports/time-tracking/export', [App\Http\Controllers\ReportController::class, 'exportTimeTracking'])->name('reports.exportTimeTracking')->middleware('permission:reports.view');
     Route::get('reports/stakeholders', [App\Http\Controllers\ReportController::class, 'stakeholderEngagement'])->name('reports.stakeholders')->middleware('permission:reports.view');
-    Route::get('reports/stakeholders', [App\Http\Controllers\ReportController::class, 'stakeholderEngagement'])->name('reports.stakeholders')->middleware('permission:reports.view');
 
     // Protected routes with role-based access
     Route::middleware('role:Admin')->group(function () {
@@ -304,6 +308,11 @@ Route::prefix('api')->middleware(['throttle:60,1', \App\Http\Middleware\ApiToken
     // Calendar
     Route::get('calendar/events', [App\Http\Controllers\Api\ApiController::class, 'calendarList']);
     Route::post('calendar/events', [App\Http\Controllers\Api\ApiController::class, 'calendarCreate']);
+    // Maklon additions
+    Route::get('bpom', [App\Http\Controllers\Api\ApiController::class, 'bpomList']);
+    Route::get('bpom/{bpom}', [App\Http\Controllers\Api\ApiController::class, 'bpomShow']);
+    Route::get('suppliers', [App\Http\Controllers\Api\ApiController::class, 'suppliers']);
+    Route::get('suppliers/{supplier}', [App\Http\Controllers\Api\ApiController::class, 'supplierShow']);
 });
 
 // 2FA routes
@@ -322,8 +331,6 @@ Route::get('public/invoices/{token}', [App\Http\Controllers\InvoiceController::c
 Route::get('public/projects/{project}/summary', [App\Http\Controllers\ReportController::class, 'clientSummary'])
     ->name('public.project.summary')
     ->middleware('signed');
-
-
 
 
 

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -9,11 +10,14 @@ use App\Models\Concerns\BelongsToTenant as TenantScope;
 
 class InventoryItem extends Model
 {
-    protected $fillable = ['tenant_id','name','supplier_id','current_stock','min_stock','unit','unit_cost'];
+    use HasFactory;
+
+    protected $fillable = ['tenant_id','name','description','supplier_id','current_stock','min_stock','min_stock_level','unit','unit_cost'];
 
     protected $casts = [
         'current_stock' => 'integer',
         'min_stock' => 'integer',
+        'min_stock_level' => 'integer',
         'unit_cost' => 'decimal:2',
     ];
 
@@ -27,4 +31,3 @@ class InventoryItem extends Model
         TenantScope::bootTenant(new static);
     }
 }
-

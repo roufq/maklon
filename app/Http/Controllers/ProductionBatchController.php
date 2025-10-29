@@ -10,10 +10,14 @@ use Illuminate\Support\Facades\Gate;
 
 class ProductionBatchController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $this->authorizeView();
-        $batches = ProductionBatch::with(['project','bpom'])->orderByDesc('id')->paginate(15);
+        $batches = ProductionBatch::with(['project','bpom'])
+            ->when($request->get('qc_status'), fn($q,$s)=>$q->where('qc_status',$s))
+            ->orderByDesc('id')
+            ->paginate(15)
+            ->withQueryString();
         return view('batches.index', compact('batches'));
     }
 
@@ -30,20 +34,25 @@ class ProductionBatchController extends Controller
         $this->authorizeCreate();
         $data = $request->validate([
             'project_id' => 'required|exists:projects,id',
-            'bpom_registration_id' => 'nullable|exists:bpom_registrations,id',
-            'quantity_produced' => 'nullable|integer|min:0',
+            'bpom_registration_id' => 'required|exists:bpom_registrations,id',
+            'batch_number' => 'required|string|max:255',
+            'quantity_produced' => 'required|integer|min:0',
             'expiry_date' => 'nullable|date',
+            'qc_status' => 'required|in:pending,passed,failed',
         ]);
-        $batchNo = self::generateBatchNumber();
-        $batch = ProductionBatch::create([
-            'project_id' => $data['project_id'],
-            'bpom_registration_id' => $data['bpom_registration_id'] ?? null,
-            'batch_number' => $batchNo,
-            'quantity_produced' => $data['quantity_produced'] ?? 0,
-            'expiry_date' => $data['expiry_date'] ?? null,
-            'qc_status' => 'pending',
+        $batch = ProductionBatch::create($data);
+        \App\Models\ProductionBatchAudit::create([
+            'production_batch_id' => $batch->id,
+            'user_id' => auth()->id(),
+            'action' => 'created',
+            'meta' => $batch->toArray(),
         ]);
-        return redirect()->route('batches.show', $batch)->with('success','Batch created');
+        dispatch(new \App\Jobs\SendWebhookEvent('production.batch.created', [
+            'id' => $batch->id,
+            'project_id' => $batch->project_id,
+            'batch_number' => $batch->batch_number,
+        ]));
+        return redirect()->route('batches.index')->with('success','Batch created');
     }
 
     public function show(ProductionBatch $batch)
@@ -66,18 +75,40 @@ class ProductionBatchController extends Controller
         $this->authorizeEdit();
         $data = $request->validate([
             'project_id' => 'required|exists:projects,id',
-            'bpom_registration_id' => 'nullable|exists:bpom_registrations,id',
-            'quantity_produced' => 'nullable|integer|min:0',
+            'bpom_registration_id' => 'required|exists:bpom_registrations,id',
+            'batch_number' => 'required|string|max:255',
+            'quantity_produced' => 'required|integer|min:0',
             'expiry_date' => 'nullable|date',
             'qc_status' => 'required|in:pending,passed,failed',
         ]);
+        $before = $batch->getOriginal();
         $batch->update($data);
+        \App\Models\ProductionBatchAudit::create([
+            'production_batch_id' => $batch->id,
+            'user_id' => auth()->id(),
+            'action' => 'updated',
+            'meta' => ['before' => $before, 'after' => $batch->getAttributes()],
+        ]);
+        dispatch(new \App\Jobs\SendWebhookEvent('production.batch.updated', [
+            'id' => $batch->id,
+            'project_id' => $batch->project_id,
+            'qc_status' => $batch->qc_status,
+        ]));
         return redirect()->route('batches.show', $batch)->with('success','Batch updated');
     }
 
     public function destroy(ProductionBatch $batch)
     {
         $this->authorizeDelete();
+        \App\Models\ProductionBatchAudit::create([
+            'production_batch_id' => $batch->id,
+            'user_id' => auth()->id(),
+            'action' => 'deleted',
+            'meta' => null,
+        ]);
+        dispatch(new \App\Jobs\SendWebhookEvent('production.batch.deleted', [
+            'id' => $batch->id,
+        ]));
         $batch->delete();
         return redirect()->route('batches.index')->with('success','Batch deleted');
     }
@@ -94,5 +125,3 @@ class ProductionBatchController extends Controller
     private function authorizeEdit(): void { abort_unless(auth()->user()?->can('production.edit'), 403); }
     private function authorizeDelete(): void { abort_unless(auth()->user()?->can('production.delete'), 403); }
 }
-
-

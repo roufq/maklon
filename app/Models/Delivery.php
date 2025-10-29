@@ -2,18 +2,20 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Models\Concerns\BelongsToTenant as TenantScope;
 
 class Delivery extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
-        'tenant_id','project_id','production_batch_id','customer_id','status','shipping_provider','tracking_number','shipping_address','shipped_at','delivered_at','notes','public_token'
+        'tenant_id','project_id','production_batch_id','customer_id','quantity','status','shipping_provider','tracking_number','shipping_address','shipped_at','delivered_at','notes','public_token'
     ];
 
     protected $casts = [
-        'shipping_address' => 'array',
         'shipped_at' => 'datetime',
         'delivered_at' => 'datetime',
     ];

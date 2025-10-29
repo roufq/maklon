@@ -4,21 +4,17 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use App\Models\Concerns\BelongsToTenant as TenantScope;
 
-class QualityCheckpoint extends Model
+class ProductionBatchAudit extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['tenant_id','project_id','name','criteria','required'];
+    protected $fillable = ['tenant_id','production_batch_id','user_id','action','meta'];
 
     protected $casts = [
-        'criteria' => 'array',
-        'required' => 'boolean',
+        'meta' => 'array',
     ];
-
-    public function project(): BelongsTo { return $this->belongsTo(Project::class); }
 
     protected static function booted()
     {

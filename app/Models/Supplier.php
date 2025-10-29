@@ -8,6 +8,8 @@ use App\Models\Concerns\BelongsToTenant as TenantScope;
 
 class Supplier extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'tenant_id','name','type','bpom_certified','contact_info','rating','performance_score'
     ];

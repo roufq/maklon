@@ -1,61 +1,174 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Maklon - Manufacturing Project Management System
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Maklon is a Laravel-based application for contract manufacturing (maklon) operations. It covers production orders, BPOM compliance, quality control, inventory, deliveries, reporting, and supporting workflows (budgets, invoices, teams), with multi‑tenant security and role‑based access.
 
-## About Laravel
+## About Maklon
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+End‑to‑end lifecycle for maklon production:
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- **Production Orders (Projects)**: CRUD, status, team, client, BPOM link.
+- **Stages (Tasks)**: CRUD, assignment, drag‑and‑drop, capacity fields (`work_station_id`, `scheduled_start/end`).
+- **BPOM Compliance**: CRUD, private document storage, activate/revoke, status tracking, alerts (H‑90/30/7), CSV export.
+- **Quality Control**: Quality Checkpoints + QC Results CRUD, QC gating of delivery, audit trail, webhooks.
+- **Inventory**: Items CRUD, stock movements (in/out/adjust), low‑stock visibility, supplier linkage.
+- **Suppliers**: CRUD, performance fields, CSV export.
+- **Production Batches**: CRUD, batch number, `qc_status`, audit, webhooks.
+- **Deliveries**: CRUD, status flow (pending/ready/shipped/delivered/returned/rejected), QC gating.
+- **Finance**: Budgets (approve), Invoices (approve/paid, PDF, public link).
+- **Reporting**: BPOM compliance, Batch/QC status, Inventory health, Project progress (CSV), Time tracking (CSV).
+- **API**: Authenticated token API for Projects/Tasks/Time/Budgets/Calendar + Maklon endpoints (BPOM, Suppliers).
+- **Security**: Multi‑tenancy, roles/permissions (Spatie), 2FA, API tokens.
+- **Automation**: Webhooks for production/QC events, weekly report jobs.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+The application uses Laravel 12, with features like real-time event broadcasting, background job processing, and a modern frontend built with Vite.
 
-## Learning Laravel
+## Installation
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+Follow these steps to set up the Maklon application on your local machine.
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+### Prerequisites
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+- PHP 8.2 or higher
+- Composer
+- Node.js and npm
+- A database (MySQL, PostgreSQL, SQLite, etc.)
 
-## Laravel Sponsors
+### Step-by-Step Installation
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+1. **Clone the repository**:
+   ```bash
+   git clone <repository-url>
+   cd maklon
+   ```
 
-### Premium Partners
+2. **Install PHP dependencies**:
+   ```bash
+   composer install
+   ```
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+3. **Set up environment file**:
+   ```bash
+   cp .env.example .env
+   ```
+   Edit `.env` to configure your database and other settings.
+
+4. **Generate application key**:
+   ```bash
+   php artisan key:generate
+   ```
+
+5. **Run database migrations**:
+   ```bash
+   php artisan migrate --force
+   ```
+
+6. **Install Node.js dependencies**:
+   ```bash
+   npm install
+   ```
+
+7. **Build assets**:
+   ```bash
+   npm run build
+   ```
+
+Alternatively, you can use the provided setup script:
+```bash
+composer run setup
+```
+
+Seed minimal roles/permissions/tenants (tests auto‑seed via `tests/TestCase.php`).
+
+### Running the Application
+
+To start the development server, queue worker, and Vite dev server concurrently:
+```bash
+composer run dev
+```
+
+This will start:
+- Laravel server on `http://localhost:8000`
+- Queue listener
+- Vite dev server for frontend assets
+
+Schedulers/cron:
+- BPOM expiry alerts: `bpom:alert-expiry` (scheduled daily 08:00 via `app/Console/Kernel.php`).
+See `docs/CRON_SETUP_CPANEL.md` for server cron setup.
+
+### Testing
+
+Run the test suite:
+```bash
+composer run test
+```
+
+End‑to‑end tests cover production workflow (Project → Batch → QC → Delivery), BPOM alerts, inventory movements, and permissions.
+
+Key test files:
+- `tests/Feature/E2eProductionWorkflowTest.php`
+- `tests/Feature/*Test.php`
+
+## Usage
+
+After installation, access the application at `http://localhost:8000`. Register a new account or log in to start managing your manufacturing projects.
+
+Key features include:
+- Production orders and stages (capacity fields)
+- BPOM registrations (private docs, alerts, export)
+- Quality checkpoints & results (QC gating)
+- Inventory + stock movements + suppliers (export)
+- Deliveries with status tracking and gating
+- Budgets, invoices (PDF/public link)
+- Reports: BPOM compliance, Batch/QC status, Inventory health, Project progress, Time tracking
+- Webhooks for production/QC events
 
 ## Contributing
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Contributions are welcome! Please follow these steps:
 
-## Code of Conduct
-
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
-
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Submit a pull request
 
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+This project is licensed under the MIT License.
+## Deployment
+See docs/DEPLOYMENT.md for production setup, optimization, backups, and monitoring.
+## API (Overview)
+
+Token‑based API (see `routes/web.php` under `Route::prefix('api')`):
+- `GET /api/projects`, `GET /api/projects/{id}`
+- `GET /api/tasks`, `GET /api/tasks/{id}`
+- `GET /api/time-entries`
+- `GET /api/budgets`
+- `GET /api/calendar/events`, `POST /api/calendar/events`
+- Maklon additions: `GET /api/bpom`, `GET /api/bpom/{id}`, `GET /api/suppliers`, `GET /api/suppliers/{id}`
+
+## Reports & Exports
+
+- Reports (UI): BPOM compliance, Batch/QC status, Inventory health, Project progress, Time tracking.
+- CSV Exports:
+  - Project progress: `reports/project-progress/export`
+  - Time tracking: `reports/time-tracking/export`
+  - BPOM: `bpom-export`
+  - Suppliers: `suppliers-export`
+
+## Webhooks
+
+Events dispatched (see `app/Jobs/SendWebhookEvent.php`):
+- `production.batch.created`, `production.batch.updated`, `production.batch.deleted`
+- `qc.result.created`, `qc.result.updated`, `qc.result.deleted`
+
+Configure in Settings → Webhooks. Optional HMAC signature via shared secret header `X-Webhook-Signature`.
+
+## Operations
+
+- Deployment: see `docs/DEPLOYMENT.md`
+- Backups: `scripts/backup/db-backup.sh`
+- Feature Flags: `docs/FEATURE_FLAGS.md`
+- Performance: `docs/PERF_TEST_PLAN.md`
+- UAT: `docs/UAT_CHECKLIST.md`
+- Rollback: `docs/ROLLBACK_PLAN.md`

@@ -150,8 +150,7 @@ class E2eProductionWorkflowTest extends TestCase
         StockMovement::create([
             'inventory_item_id' => $item->id,
             'type' => 'out',
-            'quantity' => 50,
-            'reason' => 'Production usage',
+            'qty' => 50,
             'reference_id' => $batch->id,
             'reference_type' => 'production_batch'
         ]);
@@ -162,7 +161,7 @@ class E2eProductionWorkflowTest extends TestCase
         $this->assertDatabaseHas('stock_movements', [
             'inventory_item_id' => $item->id,
             'type' => 'out',
-            'quantity' => 50
+            'qty' => 50
         ]);
     }
 
@@ -180,7 +179,7 @@ class E2eProductionWorkflowTest extends TestCase
         // Verify notification created
         $this->assertDatabaseHas('notifications', [
             'type' => 'warning',
-            'message' => 'BPOM ' . $expiringBpom->registration_number . ' will expire in 30 days'
+            'message' => 'BPOM ' . $expiringBpom->registration_number . ' will expire in 30 days (2025-11-27)'
         ]);
     }
 

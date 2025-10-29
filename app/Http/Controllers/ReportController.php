@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use App\Models\Project;
@@ -159,16 +158,6 @@ class ReportController extends Controller
                 'total_hours' => $entries->sum('duration') / 60,
                 'billable_hours' => $entries->where('billable', true)->sum('duration') / 60,
                 'entries_count' => $entries->count(),
-
-    public function deliveryStatus(Request $request)
-    {
-        $from = $request->date_from ?: now()->subDays(30)->toDateString();
-        $to = $request->date_to ?: now()->toDateString();
-        $deliveries = \App\Models\Delivery::whereBetween('created_at', ["$from 00:00:00","$to 23:59:59"]) ->get();
-        $byStatus = $deliveries->groupBy('status')->map->count();
-        $byDay = $deliveries->groupBy(fn($d) => $d->created_at->format('Y-m-d'))->map->count();
-        return view('reports.delivery-status', compact('byStatus','byDay','from','to'));
-    }
             ];
         });
 
@@ -185,6 +174,16 @@ class ReportController extends Controller
             'users',
             'projects'
         ));
+    }
+
+    public function deliveryStatus(Request $request)
+    {
+        $from = $request->date_from ?: now()->subDays(30)->toDateString();
+        $to = $request->date_to ?: now()->toDateString();
+        $deliveries = \App\Models\Delivery::whereBetween('created_at', ["$from 00:00:00","$to 23:59:59"])->get();
+        $byStatus = $deliveries->groupBy('status')->map->count();
+        $byDay = $deliveries->groupBy(fn($d) => $d->created_at->format('Y-m-d'))->map->count();
+        return view('reports.delivery-status', compact('byStatus','byDay','from','to'));
     }
 
     public function teamPerformance(Request $request)
@@ -425,16 +424,7 @@ class ReportController extends Controller
         $projects = \App\Models\Project::all();
         return view('reports.stakeholder-engagement', compact('summary','projects','projectId'));
     }
-
-    public function deliveryStatus(\Illuminate\Http\Request )
-    {
-         = ->date_from ?: now()->subDays(30)->toDateString();
-         = ->date_to ?: now()->toDateString();
-         = \App\Models\Delivery::whereBetween('created_at', [" 00:00:00"," 23:59:59"]) ->get();
-         = ->groupBy('status')->map->count();
-         = ->groupBy(function(){ return ->created_at->format('Y-m-d'); })->map->count();
-        return view('reports.delivery-status', compact('byStatus','byDay','from','to'));
-    }}
+}
 
 
 

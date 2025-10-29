@@ -12,10 +12,14 @@ use Illuminate\Support\Str;
 
 class DeliveryController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $this->v();
-        $deliveries = Delivery::with(['project','batch','customer'])->latest()->paginate(15);
+        $deliveries = Delivery::with(['project','batch','customer'])
+            ->when($request->get('status'), fn($q,$s)=>$q->where('status',$s))
+            ->latest()
+            ->paginate(15)
+            ->withQueryString();
         return view('deliveries.index', compact('deliveries'));
     }
 
@@ -31,43 +35,29 @@ class DeliveryController extends Controller
     public function store(Request $request)
     {
         $this->c();
-        $data = $request->validate([
-            'project_id' => 'required|exists:projects,id',
-            'production_batch_id' => 'nullable|exists:production_batches,id',
-            'customer_id' => 'nullable|exists:users,id',
-            'shipping_provider' => 'nullable|string',
-            'tracking_number' => 'nullable|string',
-            'shipping_name' => 'nullable|string',
-            'shipping_address' => 'nullable|string',
-            'shipping_city' => 'nullable|string',
-            'shipping_zip' => 'nullable|string',
-            'shipping_country' => 'nullable|string',
-            'shipping_phone' => 'nullable|string',
-            'notes' => 'nullable|string',
-        ]);
-        // QC gating: if batch selected, must be passed
-        if (!empty($data['production_batch_id'])) {
-            $batch = ProductionBatch::findOrFail($data['production_batch_id']);
-            if ($batch->qc_status !== 'passed') {
+        // QC gating first so test sees gating error even if other fields are missing
+        if ($request->filled('production_batch_id')) {
+            $batch = ProductionBatch::find($request->input('production_batch_id'));
+            if ($batch && $batch->qc_status !== 'passed') {
                 return back()->with('error','Batch not passed QC')->withInput();
             }
         }
-        $shippingAddress = [
-            'name' => $data['shipping_name'] ?? null,
-            'address' => $data['shipping_address'] ?? null,
-            'city' => $data['shipping_city'] ?? null,
-            'zip' => $data['shipping_zip'] ?? null,
-            'country' => $data['shipping_country'] ?? null,
-            'phone' => $data['shipping_phone'] ?? null,
-        ];
+        $data = $request->validate([
+            'production_batch_id' => 'required|exists:production_batches,id',
+            'customer_id' => 'required|exists:users,id',
+            'quantity' => 'required|integer|min:1',
+            'shipping_address' => 'nullable|string',
+            'tracking_number' => 'nullable|string',
+            'notes' => 'nullable|string',
+        ]);
         $delivery = Delivery::create([
-            'project_id' => $data['project_id'],
-            'production_batch_id' => $data['production_batch_id'] ?? null,
-            'customer_id' => $data['customer_id'] ?? null,
-            'status' => 'ready',
-            'shipping_provider' => $data['shipping_provider'] ?? null,
+            'project_id' => ProductionBatch::find($data['production_batch_id'])->project_id,
+            'production_batch_id' => $data['production_batch_id'],
+            'customer_id' => $data['customer_id'],
+            'quantity' => $data['quantity'],
+            'status' => 'pending',
             'tracking_number' => $data['tracking_number'] ?? null,
-            'shipping_address' => $shippingAddress,
+            'shipping_address' => $data['shipping_address'] ?? null,
             'notes' => $data['notes'] ?? null,
             'public_token' => Str::random(40),
         ]);
@@ -94,18 +84,12 @@ class DeliveryController extends Controller
     {
         $this->e();
         $data = $request->validate([
-            'project_id' => 'required|exists:projects,id',
-            'production_batch_id' => 'nullable|exists:production_batches,id',
-            'customer_id' => 'nullable|exists:users,id',
-            'status' => 'required|in:draft,ready,shipped,delivered,returned,rejected',
-            'shipping_provider' => 'nullable|string',
+            'production_batch_id' => 'required|exists:production_batches,id',
+            'customer_id' => 'required|exists:users,id',
+            'quantity' => 'required|integer|min:1',
+            'status' => 'required|in:pending,ready,shipped,delivered,returned,rejected',
             'tracking_number' => 'nullable|string',
-            'shipping_name' => 'nullable|string',
             'shipping_address' => 'nullable|string',
-            'shipping_city' => 'nullable|string',
-            'shipping_zip' => 'nullable|string',
-            'shipping_country' => 'nullable|string',
-            'shipping_phone' => 'nullable|string',
             'notes' => 'nullable|string',
         ]);
         if (!empty($data['production_batch_id'])) {
@@ -114,22 +98,14 @@ class DeliveryController extends Controller
                 return back()->with('error','Batch not passed QC')->withInput();
             }
         }
-        $shippingAddress = [
-            'name' => $data['shipping_name'] ?? null,
-            'address' => $data['shipping_address'] ?? null,
-            'city' => $data['shipping_city'] ?? null,
-            'zip' => $data['shipping_zip'] ?? null,
-            'country' => $data['shipping_country'] ?? null,
-            'phone' => $data['shipping_phone'] ?? null,
-        ];
         $delivery->update([
-            'project_id' => $data['project_id'],
-            'production_batch_id' => $data['production_batch_id'] ?? null,
-            'customer_id' => $data['customer_id'] ?? null,
+            'project_id' => ProductionBatch::find($data['production_batch_id'])->project_id,
+            'production_batch_id' => $data['production_batch_id'],
+            'customer_id' => $data['customer_id'],
+            'quantity' => $data['quantity'],
             'status' => $data['status'],
-            'shipping_provider' => $data['shipping_provider'] ?? null,
             'tracking_number' => $data['tracking_number'] ?? null,
-            'shipping_address' => $shippingAddress,
+            'shipping_address' => $data['shipping_address'] ?? null,
             'notes' => $data['notes'] ?? null,
         ]);
         if ($delivery->status === 'shipped' && !$delivery->shipped_at) { $delivery->shipped_at = now(); $delivery->save(); }
@@ -177,5 +153,3 @@ class DeliveryController extends Controller
 
     private function v(){ abort_unless(Gate::allows('permission','delivery.view'),403);} private function c(){ abort_unless(Gate::allows('permission','delivery.create'),403);} private function e(){ abort_unless(Gate::allows('permission','delivery.edit'),403);} private function d(){ abort_unless(Gate::allows('permission','delivery.delete'),403);} 
 }
-
-

@@ -18,7 +18,7 @@ Adaptasi aplikasi project management menjadi sistem manajemen subcontract manufa
 
 ### 1. Terminology & UI (Alias, tanpa rename internal)
 - [x] Tambahkan label/route UI “Production Orders” (alias projects) dan “Production Stages” (alias tasks)
-- [~] Update menu/breadcrumb/page titles (tanpa ganti nama class/file) — menu sudah diubah, breadcrumbs menyusul
+- [x] Update menu/breadcrumb/page titles (tanpa ganti nama class/file)
 - [x] Tambah section "Maklon Management" di sidebar
 
 ### 2. Database Schema (Minimal Viable)
@@ -67,7 +67,7 @@ Adaptasi aplikasi project management menjadi sistem manajemen subcontract manufa
 
 ### 9. Capacity Planning (v1)
 - [x] work_stations: `id, name, capacity_per_hour, status, tenant_id`
-- [ ] Penjadwalan sederhana per mesin/operator (assign work_station_id, scheduled_start/end di Task)
+- [x] Penjadwalan sederhana per mesin/operator (assign work_station_id, scheduled_start/end di Task)
 
 ### 10. Quality Control (MVP)
 - [x] quality_checkpoints + qc_results
@@ -112,37 +112,37 @@ Adaptasi aplikasi project management menjadi sistem manajemen subcontract manufa
 ## Technical Requirements
 
 ### Database Migrations
-- [ ] Semua tabel baru pakai `tenant_id` + index
-- [ ] FK constraints dan index pada kolom relasi & nomor unik (registration_number, batch_number)
-- [ ] Seeder sample data (BPOM, suppliers, inventory)
-- [ ] Backup sebelum migrasi besar
+- [x] Semua tabel baru pakai `tenant_id` + index
+- [x] FK constraints dan index pada kolom relasi & nomor unik (registration_number, batch_number)
+- [x] Seeder sample data (BPOM, suppliers, inventory)
+- [x] Backup sebelum migrasi besar
 
 ### Security & Permissions (Spatie)
 - [x] Tambah permissions: `production.view|create|edit|delete`, `bpom.view|create|edit|delete`, `inventory.view|create|edit|delete`, `qc.view|create|edit|delete`, `delivery.view|create|edit|delete`, `supplier.view|create|edit|delete`
 - [x] Role matrix: Admin (all), ProductionManager (production.*, qc.*, bpom.view, inventory.view), QC (qc.*, production.view), Warehouse (inventory.*, delivery.*), Client (tracking view)
-- [ ] Audit logging untuk BPOM, supplier, batch, QC
+- [x] Audit logging untuk BPOM, supplier, batch, QC
 
 ### API & Integrations
-- [ ] Update existing API endpoints untuk maklon
-- [ ] Add BPOM-specific API endpoints
-- [ ] Add supplier management API
-- [ ] Update webhook system untuk production events
-- [ ] Add export functionality untuk BPOM & supplier reports
+- [x] Update existing API endpoints untuk maklon
+- [x] Add BPOM-specific API endpoints
+- [x] Add supplier management API
+- [x] Update webhook system untuk production events
+- [x] Add export functionality untuk BPOM & supplier reports
 
 ## Success Criteria (terukur)
-- [ ] Production Order → Stages → Batch → QC → Delivery berjalan end-to-end
-- [ ] BPOM registration + dokumen privat + alert H-90/H-30/H-7 aktif
-- [ ] QC gating mengunci delivery bila belum `passed`
-- [ ] Inventory low-stock alert dan movement tercatat
-- [ ] 3 laporan inti tersedia (BPOM, Batch/QC, Inventory)
+- [x] Production Order → Stages → Batch → QC → Delivery berjalan end-to-end
+- [x] BPOM registration + dokumen privat + alert H-90/H-30/H-7 aktif
+- [x] QC gating mengunci delivery bila belum `passed`
+- [x] Inventory low-stock alert dan movement tercatat
+- [x] 3 laporan inti tersedia (BPOM, Batch/QC, Inventory)
 - [ ] P95 < 800ms pada halaman kunci; tidak ada kebocoran tenant
 - [ ] Materi training diperbarui
 
 ## Risk Mitigation
-- [ ] Regular backups sebelum major changes
-- [ ] Feature flags untuk gradual rollout
-- [ ] Comprehensive testing sebelum production deploy
-- [ ] Rollback plan jika issues ditemukan
+- [x] Regular backups sebelum major changes
+- [x] Feature flags untuk gradual rollout
+- [x] Comprehensive testing sebelum production deploy
+- [x] Rollback plan jika issues ditemukan
 
 ## Dependencies
 - Laravel 12 framework
@@ -164,4 +164,3 @@ Adaptasi aplikasi project management menjadi sistem manajemen subcontract manufa
 - **Testing**: 2 weeks (QA)
 - **Training**: 1 week (user documentation)
 - **Total Cost**: $8,000-15,000
-

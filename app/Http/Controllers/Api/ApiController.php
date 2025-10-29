@@ -8,6 +8,8 @@ use App\Models\Task;
 use App\Models\TimeEntry;
 use App\Models\ProjectBudget;
 use App\Models\CalendarEvent;
+use App\Models\BpomRegistration;
+use App\Models\Supplier;
 use Illuminate\Http\Request;
 
 class ApiController extends Controller
@@ -68,5 +70,30 @@ class ApiController extends Controller
         $data['user_id'] = auth()->id() ?? 1;
         $event = CalendarEvent::create($data);
         return response()->json($event, 201);
+    }
+
+    // Maklon additions
+    public function bpomList(Request $request)
+    {
+        $q = BpomRegistration::query();
+        if ($request->status) $q->where('status',$request->status);
+        return $q->orderByDesc('id')->paginate(50);
+    }
+
+    public function bpomShow(BpomRegistration $bpom)
+    {
+        return $bpom;
+    }
+
+    public function suppliers(Request $request)
+    {
+        $q = Supplier::query();
+        if ($request->bpom_certified !== null) $q->where('bpom_certified', (bool)$request->bpom_certified);
+        return $q->orderBy('name')->paginate(50);
+    }
+
+    public function supplierShow(Supplier $supplier)
+    {
+        return $supplier;
     }
 }

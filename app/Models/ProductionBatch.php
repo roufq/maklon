@@ -17,7 +17,7 @@ class ProductionBatch extends Model
     ];
 
     protected $casts = [
-        'expiry_date' => 'date',
+        'expiry_date' => 'date:Y-m-d',
         'quantity_produced' => 'integer',
     ];
 
