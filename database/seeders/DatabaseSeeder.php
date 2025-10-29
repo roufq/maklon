@@ -15,6 +15,8 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        // Seed tenant first to satisfy FK
+        $this->call(TenantSeeder::class);
         // Seed roles and permissions first
         $this->call(RoleSeeder::class);
 
