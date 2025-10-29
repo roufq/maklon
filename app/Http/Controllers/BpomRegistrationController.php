@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\BpomRegistration;
+use App\Models\Project;
 use App\Models\BpomAudit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -200,6 +201,36 @@ class BpomRegistrationController extends Controller
             'meta' => ['from' => $from, 'to' => 'revoked'],
         ]);
         return back()->with('success','Status set to Revoked');
+    }
+
+    // Customer-scoped download: allow project customer to download linked BPOM doc
+    public function downloadForProject(Project $project)
+    {
+        $user = auth()->user();
+        abort_unless($user, 403);
+
+        // Tenant guard: ensure project belongs to current tenant
+        $tenantId = TenantManager::getTenantId();
+        if ($project->tenant_id && $tenantId && $project->tenant_id !== $tenantId) {
+            abort(404);
+        }
+
+        // Only project customer or users with bpom.view can access
+        $isOwner = $project->customer_id && $user->id === $project->customer_id;
+        $canView = $user->can('bpom.view');
+        abort_unless($isOwner || $canView, 403);
+
+        $bpom = $project->bpomRegistration;
+        abort_unless($bpom && $bpom->document_path && Storage::disk('local')->exists($bpom->document_path), 404);
+
+        BpomAudit::create([
+            'bpom_registration_id' => $bpom->id,
+            'user_id' => $user->id,
+            'action' => 'downloaded',
+            'meta' => ['project_id' => $project->id, 'by_customer' => $isOwner],
+        ]);
+
+        return response()->download(storage_path('app/'.$bpom->document_path));
     }
 
     private function authorizeView(): void

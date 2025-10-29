@@ -43,6 +43,9 @@ Route::middleware(['auth', App\Http\Middleware\SetTenant::class, App\Http\Middle
         ->name('production-orders.index')->middleware('permission:projects.view');
     Route::get('production-orders/{project}', [App\Http\Controllers\ProjectController::class, 'show'])
         ->name('production-orders.show')->middleware('permission:projects.view');
+    // Customer-scoped BPOM download via project
+    Route::get('projects/{project}/bpom/download', [App\Http\Controllers\BpomRegistrationController::class, 'downloadForProject'])
+        ->name('projects.bpom.download');
 
     // Maklon: BPOM Registrations
     Route::resource('bpom', App\Http\Controllers\BpomRegistrationController::class)
@@ -133,39 +136,51 @@ Route::middleware(['auth', App\Http\Middleware\SetTenant::class, App\Http\Middle
     Route::resource('time_entries', App\Http\Controllers\TimeEntryController::class)
         ->only(['index','show'])->middleware('permission:time.view');
 
-    // Attachments
-    Route::resource('attachments', App\Http\Controllers\AttachmentController::class)
-        ->except(['index','show'])->middleware('permission:attachments.create|attachments.delete');
-    Route::resource('attachments', App\Http\Controllers\AttachmentController::class)
-        ->only(['index','show'])->middleware('permission:attachments.view');
+    // Attachments (feature-guarded)
+    if (config('features.attachments')) {
+        Route::resource('attachments', App\Http\Controllers\AttachmentController::class)
+            ->except(['index','show'])->middleware('permission:attachments.create|attachments.delete');
+        Route::resource('attachments', App\Http\Controllers\AttachmentController::class)
+            ->only(['index','show'])->middleware('permission:attachments.view');
+    }
 
-    // Notifications
-    Route::resource('notifications', App\Http\Controllers\NotificationController::class)
-        ->except(['index','show'])->middleware('permission:notifications.update');
-    Route::resource('notifications', App\Http\Controllers\NotificationController::class)
-        ->only(['index','show'])->middleware('permission:notifications.view');
+    // Notifications (feature-guarded)
+    if (config('features.notifications')) {
+        Route::resource('notifications', App\Http\Controllers\NotificationController::class)
+            ->except(['index','show'])->middleware('permission:notifications.update');
+        Route::resource('notifications', App\Http\Controllers\NotificationController::class)
+            ->only(['index','show'])->middleware('permission:notifications.view');
+        Route::patch('notifications/{notification}/mark-as-read', [App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('notifications.markAsRead')->middleware('permission:notifications.update');
+        Route::post('notifications/mark-all-as-read', [App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('notifications.markAllAsRead')->middleware('permission:notifications.update');
+        Route::get('notifications/unread-count', [App\Http\Controllers\NotificationController::class, 'getUnreadCount'])->name('notifications.unreadCount')->middleware('permission:notifications.view');
+    }
 
-    // Risks
-    Route::resource('risks', App\Http\Controllers\RiskController::class)
-        ->except(['index','show'])->middleware('permission:risks.create|risks.edit|risks.delete');
-    Route::resource('risks', App\Http\Controllers\RiskController::class)
-        ->only(['index','show'])->middleware('permission:risks.view');
+    // Risks (feature-guarded)
+    if (config('features.risks')) {
+        Route::resource('risks', App\Http\Controllers\RiskController::class)
+            ->except(['index','show'])->middleware('permission:risks.create|risks.edit|risks.delete');
+        Route::resource('risks', App\Http\Controllers\RiskController::class)
+            ->only(['index','show'])->middleware('permission:risks.view');
+    }
 
-    // Additional resource routes (must be before resources show route)
-    Route::get('resources/utilization', [App\Http\Controllers\ResourceController::class, 'utilization'])
-        ->name('resources.utilization')->middleware('permission:resources.view');
-    Route::get('resources/reports', [App\Http\Controllers\ResourceController::class, 'reports'])
-        ->name('resources.reports')->middleware('permission:resources.view');
-    Route::get('resources/get-tasks', [App\Http\Controllers\ResourceController::class, 'getTasks'])
-        ->name('resources.getTasks')->middleware('permission:resources.view');
-    Route::get('resources/capacity', [App\Http\Controllers\ResourceController::class, 'capacity'])
-        ->name('resources.capacity')->middleware('permission:resources.view');
+    // Resources (feature-guarded)
+    if (config('features.resources')) {
+        // Additional resource routes (must be before resources show route)
+        Route::get('resources/utilization', [App\Http\Controllers\ResourceController::class, 'utilization'])
+            ->name('resources.utilization')->middleware('permission:resources.view');
+        Route::get('resources/reports', [App\Http\Controllers\ResourceController::class, 'reports'])
+            ->name('resources.reports')->middleware('permission:resources.view');
+        Route::get('resources/get-tasks', [App\Http\Controllers\ResourceController::class, 'getTasks'])
+            ->name('resources.getTasks')->middleware('permission:resources.view');
+        Route::get('resources/capacity', [App\Http\Controllers\ResourceController::class, 'capacity'])
+            ->name('resources.capacity')->middleware('permission:resources.view');
 
-    // Resources (allocations)
-    Route::resource('resources', App\Http\Controllers\ResourceController::class)
-        ->except(['index','show'])->middleware('permission:resources.create|resources.edit|resources.delete');
-    Route::resource('resources', App\Http\Controllers\ResourceController::class)
-        ->only(['index','show'])->middleware('permission:resources.view');
+        // Resources (allocations)
+        Route::resource('resources', App\Http\Controllers\ResourceController::class)
+            ->except(['index','show'])->middleware('permission:resources.create|resources.edit|resources.delete');
+        Route::resource('resources', App\Http\Controllers\ResourceController::class)
+            ->only(['index','show'])->middleware('permission:resources.view');
+    }
 
     // Additional resource routes (moved above)
 
@@ -189,12 +204,18 @@ Route::middleware(['auth', App\Http\Middleware\SetTenant::class, App\Http\Middle
     // Report routes
     Route::get('reports', [App\Http\Controllers\ReportController::class, 'index'])->name('reports.index')->middleware('permission:reports.view');
     Route::get('reports/project-progress', [App\Http\Controllers\ReportController::class, 'projectProgress'])->name('reports.projectProgress')->middleware('permission:reports.view');
-    Route::get('reports/time-tracking', [App\Http\Controllers\ReportController::class, 'timeTracking'])->name('reports.timeTracking')->middleware('permission:reports.view');
-    Route::get('reports/team-performance', [App\Http\Controllers\ReportController::class, 'teamPerformance'])->name('reports.teamPerformance')->middleware('permission:reports.view');
+    if (config('features.reports.time_tracking')) {
+        Route::get('reports/time-tracking', [App\Http\Controllers\ReportController::class, 'timeTracking'])->name('reports.timeTracking')->middleware('permission:reports.view');
+        Route::get('reports/time-tracking/export', [App\Http\Controllers\ReportController::class, 'exportTimeTracking'])->name('reports.exportTimeTracking')->middleware('permission:reports.view');
+    }
+    if (config('features.reports.team_performance')) {
+        Route::get('reports/team-performance', [App\Http\Controllers\ReportController::class, 'teamPerformance'])->name('reports.teamPerformance')->middleware('permission:reports.view');
+    }
     Route::get('reports/deliveries', [App\Http\Controllers\ReportController::class, 'deliveryStatus'])->name('reports.deliveries')->middleware('permission:reports.view');
     Route::get('reports/project-progress/export', [App\Http\Controllers\ReportController::class, 'exportProjectProgress'])->name('reports.exportProjectProgress')->middleware('permission:reports.view');
-    Route::get('reports/time-tracking/export', [App\Http\Controllers\ReportController::class, 'exportTimeTracking'])->name('reports.exportTimeTracking')->middleware('permission:reports.view');
-    Route::get('reports/stakeholders', [App\Http\Controllers\ReportController::class, 'stakeholderEngagement'])->name('reports.stakeholders')->middleware('permission:reports.view');
+    if (config('features.reports.stakeholder_engagement')) {
+        Route::get('reports/stakeholders', [App\Http\Controllers\ReportController::class, 'stakeholderEngagement'])->name('reports.stakeholders')->middleware('permission:reports.view');
+    }
 
     // Protected routes with role-based access
     Route::middleware('role:Admin')->group(function () {
@@ -233,27 +254,35 @@ Route::middleware(['auth', App\Http\Middleware\SetTenant::class, App\Http\Middle
     Route::post('tasks/{task}/time/start', [App\Http\Controllers\TimeEntryController::class, 'startTimer'])->name('tasks.time.start')->middleware('permission:time.create');
     Route::post('tasks/{task}/time/stop', [App\Http\Controllers\TimeEntryController::class, 'stopTimer'])->name('tasks.time.stop')->middleware('permission:time.edit');
 
-    // Comments
-    Route::post('comments', [App\Http\Controllers\CommentController::class, 'store'])->name('comments.store');
-    Route::delete('comments/{comment}', [App\Http\Controllers\CommentController::class, 'destroy'])->name('comments.destroy');
+    // Comments (feature-guarded)
+    if (config('features.comments')) {
+        Route::post('comments', [App\Http\Controllers\CommentController::class, 'store'])->name('comments.store');
+        Route::delete('comments/{comment}', [App\Http\Controllers\CommentController::class, 'destroy'])->name('comments.destroy');
+    }
 
-    // Stakeholders
-    Route::get('stakeholders/matrix', [App\Http\Controllers\StakeholderController::class, 'matrix'])->name('stakeholders.matrix')->middleware('permission:projects.view');
-    Route::post('stakeholders/{stakeholder}/comms', [App\Http\Controllers\StakeholderController::class, 'addComm'])->name('stakeholders.comms.store')->middleware('permission:projects.edit');
-    Route::resource('stakeholders', App\Http\Controllers\StakeholderController::class)->middleware('permission:projects.view');
+    // Stakeholders (feature-guarded)
+    if (config('features.stakeholders')) {
+        Route::get('stakeholders/matrix', [App\Http\Controllers\StakeholderController::class, 'matrix'])->name('stakeholders.matrix')->middleware('permission:projects.view');
+        Route::post('stakeholders/{stakeholder}/comms', [App\Http\Controllers\StakeholderController::class, 'addComm'])->name('stakeholders.comms.store')->middleware('permission:projects.edit');
+        Route::resource('stakeholders', App\Http\Controllers\StakeholderController::class)->middleware('permission:projects.view');
+    }
 
-    // Stakeholder Surveys
-    Route::get('surveys', [App\Http\Controllers\StakeholderSurveyController::class, 'index'])->name('surveys.index')->middleware('permission:projects.view');
-    Route::get('surveys/create', [App\Http\Controllers\StakeholderSurveyController::class, 'create'])->name('surveys.create')->middleware('permission:projects.edit');
-    Route::post('surveys', [App\Http\Controllers\StakeholderSurveyController::class, 'store'])->name('surveys.store')->middleware('permission:projects.edit');
-    Route::get('surveys/{survey}', [App\Http\Controllers\StakeholderSurveyController::class, 'show'])->name('surveys.show')->middleware('permission:projects.view');
-    Route::post('surveys/{survey}/invite', [App\Http\Controllers\StakeholderSurveyController::class, 'invite'])->name('surveys.invite')->middleware('permission:projects.edit');
-    Route::post('responses/{response}/submit', [App\Http\Controllers\StakeholderSurveyController::class, 'submit'])->name('surveys.responses.submit');
+    // Stakeholder Surveys (feature-guarded)
+    if (config('features.surveys')) {
+        Route::get('surveys', [App\Http\Controllers\StakeholderSurveyController::class, 'index'])->name('surveys.index')->middleware('permission:projects.view');
+        Route::get('surveys/create', [App\Http\Controllers\StakeholderSurveyController::class, 'create'])->name('surveys.create')->middleware('permission:projects.edit');
+        Route::post('surveys', [App\Http\Controllers\StakeholderSurveyController::class, 'store'])->name('surveys.store')->middleware('permission:projects.edit');
+        Route::get('surveys/{survey}', [App\Http\Controllers\StakeholderSurveyController::class, 'show'])->name('surveys.show')->middleware('permission:projects.view');
+        Route::post('surveys/{survey}/invite', [App\Http\Controllers\StakeholderSurveyController::class, 'invite'])->name('surveys.invite')->middleware('permission:projects.edit');
+        Route::post('responses/{response}/submit', [App\Http\Controllers\StakeholderSurveyController::class, 'submit'])->name('surveys.responses.submit');
+    }
 
-    // EVM
-    Route::get('evm', [App\Http\Controllers\EvmController::class, 'index'])->name('evm.index')->middleware('permission:reports.view');
-    Route::post('evm/baselines', [App\Http\Controllers\EvmController::class, 'storeBaseline'])->name('evm.baselines.store')->middleware('permission:reports.view');
-    Route::post('evm/capture', [App\Http\Controllers\EvmController::class, 'capturePoint'])->name('evm.capture')->middleware('permission:reports.view');
+    // EVM (feature-guarded)
+    if (config('features.evm')) {
+        Route::get('evm', [App\Http\Controllers\EvmController::class, 'index'])->name('evm.index')->middleware('permission:reports.view');
+        Route::post('evm/baselines', [App\Http\Controllers\EvmController::class, 'storeBaseline'])->name('evm.baselines.store')->middleware('permission:reports.view');
+        Route::post('evm/capture', [App\Http\Controllers\EvmController::class, 'capturePoint'])->name('evm.capture')->middleware('permission:reports.view');
+    }
 
     // Invoices
     Route::resource('invoices', App\Http\Controllers\InvoiceController::class)
@@ -268,9 +297,11 @@ Route::middleware(['auth', App\Http\Middleware\SetTenant::class, App\Http\Middle
 
     // Settings: API Tokens & Webhooks (admin/developer only)
     Route::middleware('role:Admin|Developer')->prefix('settings')->name('settings.')->group(function () {
-        Route::get('api-tokens', [App\Http\Controllers\Settings\ApiTokenController::class, 'index'])->name('api-tokens.index');
-        Route::post('api-tokens', [App\Http\Controllers\Settings\ApiTokenController::class, 'store'])->name('api-tokens.store');
-        Route::delete('api-tokens/{api_token}', [App\Http\Controllers\Settings\ApiTokenController::class, 'destroy'])->name('api-tokens.destroy');
+        if (config('features.api_tokens')) {
+            Route::get('api-tokens', [App\Http\Controllers\Settings\ApiTokenController::class, 'index'])->name('api-tokens.index');
+            Route::post('api-tokens', [App\Http\Controllers\Settings\ApiTokenController::class, 'store'])->name('api-tokens.store');
+            Route::delete('api-tokens/{api_token}', [App\Http\Controllers\Settings\ApiTokenController::class, 'destroy'])->name('api-tokens.destroy');
+        }
 
         Route::get('webhooks', [App\Http\Controllers\Settings\WebhookController::class, 'index'])->name('webhooks.index');
         Route::get('webhooks/create', [App\Http\Controllers\Settings\WebhookController::class, 'create'])->name('webhooks.create');
@@ -324,21 +355,47 @@ Route::middleware('auth')->group(function(){
 Route::get('2fa/verify', [App\Http\Controllers\Security\TwoFactorController::class, 'verifyForm'])->name('2fa.verify.form');
 Route::post('2fa/verify', [App\Http\Controllers\Security\TwoFactorController::class, 'verify'])->name('2fa.verify');
 
-// Public invoice view
-Route::get('public/invoices/{token}', [App\Http\Controllers\InvoiceController::class, 'publicShow'])->name('invoices.public');
+// Public sharing (feature-guarded)
+if (config('features.public_sharing')) {
+    // Public invoice view
+    Route::get('public/invoices/{token}', [App\Http\Controllers\InvoiceController::class, 'publicShow'])->name('invoices.public');
 
-// Public project summary (signed URL only)
-Route::get('public/projects/{project}/summary', [App\Http\Controllers\ReportController::class, 'clientSummary'])
-    ->name('public.project.summary')
-    ->middleware('signed');
+    // Public project summary (signed URL only)
+    Route::get('public/projects/{project}/summary', [App\Http\Controllers\ReportController::class, 'clientSummary'])
+        ->name('public.project.summary')
+        ->middleware('signed');
+}
 
-
-
-
-
-
-
-
+// Placeholder routes to satisfy layout links when features are disabled
+if (!config('features.attachments')) {
+    Route::get('attachments', fn()=>abort(404))->name('attachments.index');
+}
+if (!config('features.notifications')) {
+    Route::get('notifications', fn()=>abort(404))->name('notifications.index');
+}
+if (!config('features.resources')) {
+    Route::get('resources', fn()=>abort(404))->name('resources.index');
+    Route::get('resources/capacity', fn()=>abort(404))->name('resources.capacity');
+}
+if (!config('features.risks')) {
+    Route::get('risks', fn()=>abort(404))->name('risks.index');
+}
+if (!config('features.stakeholders')) {
+    Route::get('stakeholders', fn()=>abort(404))->name('stakeholders.index');
+}
+if (!config('features.surveys')) {
+    Route::get('surveys', fn()=>abort(404))->name('surveys.index');
+}
+if (!config('features.evm')) {
+    Route::get('evm', fn()=>abort(404))->name('evm.index');
+}
+if (!config('features.reports.stakeholder_engagement')) {
+    Route::get('reports/stakeholders', fn()=>abort(404))->name('reports.stakeholders');
+}
+if (!config('features.comments')) {
+    Route::post('comments', fn()=>abort(404))->name('comments.store');
+    Route::delete('comments/{comment}', fn()=>abort(404))->name('comments.destroy');
+}
 
 
 

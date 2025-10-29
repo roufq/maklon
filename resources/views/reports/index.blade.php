@@ -30,6 +30,7 @@
             </div>
         </div>
 
+        @if (config('features.reports.time_tracking') && Route::has('reports.timeTracking'))
         <!-- Time Tracking Report -->
         <div class="col-lg-4 col-md-6 mb-4">
             <div class="card border-0 shadow-sm h-100">
@@ -45,7 +46,9 @@
                 </div>
             </div>
         </div>
+        @endif
 
+        @if (config('features.reports.team_performance') && Route::has('reports.teamPerformance'))
         <!-- Team Performance Report -->
         <div class="col-lg-4 col-md-6 mb-4">
             <div class="card border-0 shadow-sm h-100">
@@ -61,7 +64,9 @@
                 </div>
             </div>
         </div>
+        @endif
 
+        @if (config('features.resources') && Route::has('resources.utilization'))
         <!-- Resource Utilization Report -->
         <div class="col-lg-4 col-md-6 mb-4">
             <div class="card border-0 shadow-sm h-100">
@@ -77,6 +82,7 @@
                 </div>
             </div>
         </div>
+        @endif
 
         <!-- BPOM Compliance Report -->
         <div class="col-lg-4 col-md-6 mb-4">

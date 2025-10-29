@@ -425,6 +425,7 @@
                 </a>
               </li>
               @endcan
+              @if (config('features.attachments'))
               @can('attachments.view')
               <li class="nav-item">
                 <a href="{{ route('attachments.index') }}" class="nav-link {{ request()->routeIs('attachments.*') ? 'active' : '' }}">
@@ -433,6 +434,8 @@
                 </a>
               </li>
               @endcan
+              @endif
+              @if (config('features.notifications'))
               @can('notifications.view')
               <li class="nav-item">
                 <a href="{{ route('notifications.index') }}" class="nav-link {{ request()->routeIs('notifications.*') ? 'active' : '' }}">
@@ -441,6 +444,7 @@
                 </a>
               </li>
               @endcan
+              @endif
               @can('calendar.view')
               <li class="nav-item">
                 <a href="{{ route('calendar.index') }}" class="nav-link {{ request()->routeIs('calendar.*') ? 'active' : '' }}">
@@ -449,6 +453,7 @@
                 </a>
               </li>
               @endcan
+              @if (config('features.resources'))
               <li class="nav-header">Resources</li>
               <li class="nav-item">
                 @can('resources.view')
@@ -458,6 +463,7 @@
                 </a>
                 @endcan
               </li>
+              @endif
               <li class="nav-header">Finance</li>
               <li class="nav-item">
                 @can('budgets.view')
@@ -485,12 +491,14 @@
                 @endcan
               </li>
               @can('reports.view')
+              @if (config('features.reports.stakeholder_engagement'))
               <li class="nav-item">
                 <a href="{{ route('reports.stakeholders') }}" class="nav-link {{ request()->routeIs('reports.stakeholders') ? 'active' : '' }}">
                   <i class="nav-icon bi bi-people"></i>
                   <p>Stakeholder Engagement</p>
                 </a>
               </li>
+              @endif
               @endcan
               @can('budgets.view')
               <li class="nav-item">
@@ -501,12 +509,14 @@
               </li>
               @endcan
               @can('reports.view')
+              @if (config('features.evm'))
               <li class="nav-item">
                 <a href="{{ route('evm.index') }}" class="nav-link {{ request()->routeIs('evm.*') ? 'active' : '' }}">
                   <i class="nav-icon bi bi-activity"></i>
                   <p>EVM</p>
                 </a>
               </li>
+              @endif
               <li class="nav-item">
                 <a href="{{ route('reports.bpom') }}" class="nav-link {{ request()->routeIs('reports.bpom') ? 'active' : '' }}">
                   <i class="nav-icon bi bi-shield-check"></i>
@@ -516,9 +526,14 @@
               @endcan
               <li class="nav-header">Collaboration</li>
               @can('projects.view')
+              @if (config('features.stakeholders'))
               <li class="nav-item"><a href="{{ route('stakeholders.index') }}" class="nav-link {{ request()->routeIs('stakeholders.*') ? 'active' : '' }}"><i class="nav-icon bi bi-person-rolodex"></i><p>Stakeholders</p></a></li>
+              @endif
+              @if (config('features.surveys'))
               <li class="nav-item"><a href="{{ route('surveys.index') }}" class="nav-link {{ request()->routeIs('surveys.*') ? 'active' : '' }}"><i class="nav-icon bi bi-ui-checks"></i><p>Surveys</p></a></li>
+              @endif
               @endcan
+              @if (config('features.resources'))
               @can('resources.view')
               <li class="nav-item">
                 <a href="{{ route('resources.index') }}" class="nav-link {{ request()->routeIs('resources.*') ? 'active' : '' }}">
@@ -527,6 +542,8 @@
                 </a>
               </li>
               @endcan
+              @endif
+              @if (config('features.risks'))
               @can('risks.view')
               <li class="nav-item">
                 <a href="{{ route('risks.index') }}" class="nav-link {{ request()->routeIs('risks.*') ? 'active' : '' }}">
@@ -535,6 +552,7 @@
                 </a>
               </li>
               @endcan
+              @endif
               <li class="nav-header">Administration</li>
               @role('Admin')
               <li class="nav-item">
