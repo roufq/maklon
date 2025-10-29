@@ -172,3 +172,4 @@ Configure in Settings → Webhooks. Optional HMAC signature via shared secret he
 - Performance: `docs/PERF_TEST_PLAN.md`
 - UAT: `docs/UAT_CHECKLIST.md`
 - Rollback: `docs/ROLLBACK_PLAN.md`
+- Training: docs/TRAINING.md

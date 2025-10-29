@@ -135,8 +135,8 @@ Adaptasi aplikasi project management menjadi sistem manajemen subcontract manufa
 - [x] QC gating mengunci delivery bila belum `passed`
 - [x] Inventory low-stock alert dan movement tercatat
 - [x] 3 laporan inti tersedia (BPOM, Batch/QC, Inventory)
-- [ ] P95 < 800ms pada halaman kunci; tidak ada kebocoran tenant
-- [ ] Materi training diperbarui
+- [x] P95 < 800ms pada halaman kunci; tidak ada kebocoran tenant
+- [x] Materi training diperbarui
 
 ## Risk Mitigation
 - [x] Regular backups sebelum major changes

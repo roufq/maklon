@@ -6,6 +6,7 @@ use App\Models\BpomRegistration;
 use App\Models\BpomAudit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use App\Support\Tenancy\TenantManager;
 use Illuminate\Support\Facades\Gate;
 
 class BpomRegistrationController extends Controller
@@ -63,6 +64,9 @@ class BpomRegistrationController extends Controller
     public function show(BpomRegistration $bpom)
     {
         $this->authorizeView();
+        if ($bpom->tenant_id && TenantManager::getTenantId() && $bpom->tenant_id !== TenantManager::getTenantId()) {
+            abort(404);
+        }
         // Provide both keys to satisfy different view/test expectations
         return view('bpom.show', ['item' => $bpom, 'registration' => $bpom]);
     }

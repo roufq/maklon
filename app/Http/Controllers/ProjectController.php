@@ -63,6 +63,9 @@ class ProjectController extends Controller
 
     public function show(Project $project)
     {
+        if ($project->tenant_id && \App\Support\Tenancy\TenantManager::getTenantId() && $project->tenant_id !== \App\Support\Tenancy\TenantManager::getTenantId()) {
+            abort(404);
+        }
         $project->load(['creator', 'team', 'tasks.assignedUser', 'timeEntries.user']);
         return view('projects.show', compact('project'));
     }
