@@ -7,9 +7,8 @@ return [
     // Example rate card per role (IDR per hour)
     'rates_per_role' => [
         'Admin' => env('RATE_ADMIN', 250000),
-        'Manager' => env('RATE_MANAGER', 200000),
-        'Developer' => env('RATE_DEVELOPER', 150000),
-        'Client' => env('RATE_CLIENT', 0),
+        'Finance' => env('RATE_FINANCE', 200000),
+        'Produksi' => env('RATE_PRODUKSI', 150000),
+        'CS' => env('RATE_CS', 0),
     ],
 ];
-

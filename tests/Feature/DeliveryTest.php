@@ -29,7 +29,7 @@ class DeliveryTest extends TestCase
         // Create a batch and customer for deliveries
         $this->batch = ProductionBatch::factory()->create(['qc_status' => 'passed']);
         $this->customer = User::factory()->create();
-        $this->customer->assignRole('Client');
+        $this->customer->assignRole('CS');
     }
 
     #[Test]

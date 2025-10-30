@@ -18,11 +18,21 @@ return [
     'api_tokens' => false,
     'public_sharing' => false,
 
+    // Maklon toggles (new)
+    'boms' => false,
+    'work_stations' => false,
+    'suppliers' => false,
+    'production_batches' => false,
+    'inventory' => false,
+    'delivery' => false,
+
     // Reports toggles
     'reports' => [
         'team_performance' => false,
         'time_tracking' => false,
         'stakeholder_engagement' => false,
     ],
+    // Core guards
+    'tenancy' => false,
+    'two_factor' => false,
 ];
-

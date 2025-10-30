@@ -22,7 +22,7 @@ class AuthAuthorizationTest extends TestCase
     public function user_without_permission_gets_forbidden()
     {
         $user = User::factory()->create();
-        $user->assignRole('Client'); // Client does not have inventory.view
+        $user->assignRole('CS'); // CS does not have inventory.view by default
 
         $this->actingAs($user);
 
@@ -30,4 +30,3 @@ class AuthAuthorizationTest extends TestCase
         $response->assertStatus(403);
     }
 }
-

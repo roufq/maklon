@@ -340,34 +340,42 @@
               </li>
               @endcan
               @can('production.view')
+              @if (config('features.production_batches'))
               <li class="nav-item">
                 <a href="{{ route('batches.index') }}" class="nav-link {{ request()->routeIs('batches.*') ? 'active' : '' }}">
                   <i class="nav-icon bi bi-collection"></i>
                   <p>Production Batches</p>
                 </a>
               </li>
+              @endif
               @endcan
               @can('inventory.view')
+              @if (config('features.inventory'))
               <li class="nav-item">
                 <a href="{{ route('inventory.index') }}" class="nav-link {{ request()->routeIs('inventory.*') ? 'active' : '' }}">
                   <i class="nav-icon bi bi-box-seam"></i>
                   <p>Inventory</p>
                 </a>
               </li>
+              @endif
+              @if (config('features.boms'))
               <li class="nav-item">
                 <a href="{{ route('boms.index') }}" class="nav-link {{ request()->routeIs('boms.*') ? 'active' : '' }}">
                   <i class="nav-icon bi bi-diagram-2"></i>
                   <p>BOMs</p>
                 </a>
               </li>
+              @endif
               @endcan
               @can('production.view')
+              @if (config('features.work_stations'))
               <li class="nav-item">
                 <a href="{{ route('work-stations.index') }}" class="nav-link {{ request()->routeIs('work-stations.*') ? 'active' : '' }}">
                   <i class="nav-icon bi bi-cpu"></i>
                   <p>Work Stations</p>
                 </a>
               </li>
+              @endif
               @endcan
               @can('qc.view')
               <li class="nav-item">
@@ -378,18 +386,38 @@
               </li>
               @endcan
               @can('supplier.view')
+              @if (config('features.suppliers'))
               <li class="nav-item">
                 <a href="{{ route('suppliers.index') }}" class="nav-link {{ request()->routeIs('suppliers.*') ? 'active' : '' }}">
                   <i class="nav-icon bi bi-truck"></i>
                   <p>Suppliers</p>
                 </a>
               </li>
+              @endif
               @endcan
               @can('delivery.view')
+              @if (config('features.delivery'))
               <li class="nav-item">
                 <a href="{{ route('deliveries.index') }}" class="nav-link {{ request()->routeIs('deliveries.*') ? 'active' : '' }}">
                   <i class="nav-icon bi bi-box-arrow-up-right"></i>
                   <p>Deliveries</p>
+                </a>
+              </li>
+              @endif
+              @endcan
+              @can('boxes.view')
+              <li class="nav-item">
+                <a href="{{ route('box-types.index') }}" class="nav-link {{ request()->routeIs('box-types.*') ? 'active' : '' }}">
+                  <i class="nav-icon bi bi-box"></i>
+                  <p>Box Types</p>
+                </a>
+              </li>
+              @endcan
+              @can('boxes.create')
+              <li class="nav-item">
+                <a href="{{ route('project-boxes.create') }}" class="nav-link {{ request()->routeIs('project-boxes.create') ? 'active' : '' }}">
+                  <i class="nav-icon bi bi-boxes"></i>
+                  <p>Tambah Project Box</p>
                 </a>
               </li>
               @endcan
@@ -525,6 +553,28 @@
               </li>
               @endcan
               <li class="nav-header">Collaboration</li>
+              @can('tickets.view')
+              @php($queuedTickets = \App\Models\Ticket::where('status','queued')->count())
+              <li class="nav-item">
+                <a href="{{ route('tickets.index') }}" class="nav-link {{ request()->routeIs('tickets.*') ? 'active' : '' }}">
+                  <i class="nav-icon bi bi-chat-dots"></i>
+                  <p>
+                    Tickets
+                    @if($queuedTickets > 0)
+                      <span class="badge text-bg-danger ms-2">{{ $queuedTickets }}</span>
+                    @endif
+                  </p>
+                </a>
+              </li>
+              @endcan
+              @can('messages.view')
+              <li class="nav-item">
+                <a href="{{ route('messages.index') }}" class="nav-link {{ request()->routeIs('messages.*') ? 'active' : '' }}">
+                  <i class="nav-icon bi bi-chat-left-text"></i>
+                  <p>Messages</p>
+                </a>
+              </li>
+              @endcan
               @can('projects.view')
               @if (config('features.stakeholders'))
               <li class="nav-item"><a href="{{ route('stakeholders.index') }}" class="nav-link {{ request()->routeIs('stakeholders.*') ? 'active' : '' }}"><i class="nav-icon bi bi-person-rolodex"></i><p>Stakeholders</p></a></li>
@@ -561,25 +611,29 @@
                   <p>Users</p>
                 </a>
               </li>
+              @if (config('features.tenancy'))
               <li class="nav-item">
                 <a href="{{ route('admin.tenants.index') }}" class="nav-link {{ request()->routeIs('admin.tenants.*') ? 'active' : '' }}">
                   <i class="nav-icon bi bi-buildings"></i>
                   <p>Tenants</p>
                 </a>
               </li>
+              @endif
               @endrole
-              @role('Admin|Developer')
+              @role('Admin|Produksi')
               @if (Route::has('settings.api-tokens.index'))
               <li class="nav-item"><a href="{{ route('settings.api-tokens.index') }}" class="nav-link {{ request()->routeIs('settings.api-tokens.*') ? 'active' : '' }}"><i class="nav-icon bi bi-gear"></i><p>API & Webhooks</p></a></li>
               @endif
               @endrole
               <li class="nav-header">Settings</li>
+              @if (config('features.two_factor'))
               <li class="nav-item">
                 <a href="{{ route('2fa.settings') }}" class="nav-link {{ request()->routeIs('2fa.*') ? 'active' : '' }}">
                   <i class="nav-icon bi bi-shield-lock"></i>
                   <p>Security (2FA)</p>
                 </a>
               </li>
+              @endif
             </ul>
             <!--end::Sidebar Menu-->
           </nav>

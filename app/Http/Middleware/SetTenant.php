@@ -12,6 +12,10 @@ class SetTenant
 {
     public function handle(Request $request, Closure $next): Response
     {
+        if (!config('features.tenancy')) {
+            \App\Support\Tenancy\TenantManager::setTenant(null);
+            return $next($request);
+        }
         $tenant = null;
         // 0) From session switcher (Admin)
         if (session()->has('impersonate_tenant_id')) {

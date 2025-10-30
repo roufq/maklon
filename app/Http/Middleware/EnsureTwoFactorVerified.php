@@ -10,6 +10,9 @@ class EnsureTwoFactorVerified
 {
     public function handle(Request $request, Closure $next): Response
     {
+        if (!config('features.two_factor')) {
+            return $next($request);
+        }
         $user = $request->user();
         if ($user && $user->two_factor_enabled) {
             if (!$request->session()->get('two_factor_passed')) {
@@ -21,4 +24,3 @@ class EnsureTwoFactorVerified
         return $next($request);
     }
 }
-

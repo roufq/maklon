@@ -26,6 +26,9 @@ class DatabaseSeeder extends Seeder
         // Seed maklon-specific data
         $this->call(MaklonSeeder::class);
 
+        // Seed demo for tickets/messages/boxes
+        $this->call(MessagesTicketsBoxesSeeder::class);
+
         // User::factory(10)->create();
 
         // User::factory()->create([

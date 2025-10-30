@@ -15,8 +15,9 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
+        // Align with TenantSeeder ('manajemen.com') so web tenant scope matches seeded data
         $tenant = Tenant::firstOrCreate(
-            ['domain' => 'maklon.com'],
+            ['domain' => 'manajemen.com'],
             ['name' => 'Default Tenant']
         );
         $tenantId = $tenant->id;
@@ -25,31 +26,31 @@ class UserSeeder extends Seeder
             ['email' => 'admin@maklon.com'],
             ['name' => 'Admin User','password' => Hash::make('password'),'email_verified_at' => now(),'tenant_id' => $tenantId]
         );
-        if (!$admin->tenant_id) { $admin->tenant_id = $tenantId; $admin->save(); }
+        if ($admin->tenant_id !== $tenantId) { $admin->tenant_id = $tenantId; $admin->save(); }
         $admin->assignRole('Admin');
 
-        // Create Manager User
+        // Create Finance User (renamed from Manager)
         $manager = User::firstOrCreate(
             ['email' => 'manager@maklon.com'],
-            ['name' => 'Manager User','password' => Hash::make('password'),'email_verified_at' => now(),'tenant_id' => $tenantId]
+            ['name' => 'Finance User','password' => Hash::make('password'),'email_verified_at' => now(),'tenant_id' => $tenantId]
         );
-        if (!$manager->tenant_id) { $manager->tenant_id = $tenantId; $manager->save(); }
-        $manager->assignRole('Manager');
+        if ($manager->tenant_id !== $tenantId) { $manager->tenant_id = $tenantId; $manager->save(); }
+        $manager->syncRoles(['Finance']);
 
-        // Create Developer User
+        // Create Produksi User (renamed from Developer)
         $developer = User::firstOrCreate(
             ['email' => 'developer@maklon.com'],
-            ['name' => 'Developer User','password' => Hash::make('password'),'email_verified_at' => now(),'tenant_id' => $tenantId]
+            ['name' => 'Produksi User','password' => Hash::make('password'),'email_verified_at' => now(),'tenant_id' => $tenantId]
         );
-        if (!$developer->tenant_id) { $developer->tenant_id = $tenantId; $developer->save(); }
-        $developer->assignRole('Developer');
+        if ($developer->tenant_id !== $tenantId) { $developer->tenant_id = $tenantId; $developer->save(); }
+        $developer->syncRoles(['Produksi']);
 
-        // Create Client User
+        // Create CS User (renamed from Client)
         $client = User::firstOrCreate(
             ['email' => 'client@maklon.com'],
-            ['name' => 'Client User','password' => Hash::make('password'),'email_verified_at' => now(),'tenant_id' => $tenantId]
+            ['name' => 'CS User','password' => Hash::make('password'),'email_verified_at' => now(),'tenant_id' => $tenantId]
         );
-        if (!$client->tenant_id) { $client->tenant_id = $tenantId; $client->save(); }
-        $client->assignRole('Client');
+        if ($client->tenant_id !== $tenantId) { $client->tenant_id = $tenantId; $client->save(); }
+        $client->syncRoles(['CS']);
     }
 }

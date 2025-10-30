@@ -83,6 +83,16 @@ class Project extends Model
         return $this->hasMany(TimeEntry::class);
     }
 
+    public function tickets(): HasMany
+    {
+        return $this->hasMany(Ticket::class);
+    }
+
+    public function projectBoxes(): HasMany
+    {
+        return $this->hasMany(ProjectBox::class);
+    }
+
     public function attachments(): MorphMany
     {
         return $this->morphMany(Attachment::class, 'attachable');

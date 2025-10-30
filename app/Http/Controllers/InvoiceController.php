@@ -30,9 +30,9 @@ class InvoiceController extends Controller
     public function create()
     {
         $projects = Project::all();
-        // Clients are Users with role 'Client' within current tenant
+        // Clients are Users with role 'CS' within current tenant (renamed from Client)
         $tenantId = \App\Support\Tenancy\TenantManager::getTenantId();
-        $clients = \App\Models\User::role('Client')
+        $clients = \App\Models\User::role('CS')
             ->when($tenantId, fn($q) => $q->where('tenant_id', $tenantId))
             ->orderBy('name')
             ->get(['id','name','email']);

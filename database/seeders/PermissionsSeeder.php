@@ -42,9 +42,10 @@ class PermissionsSeeder extends Seeder
 
         // Roles
         $admin = Role::findOrCreate('Admin');
-        $manager = Role::findOrCreate('Manager');
+        // Align with new role naming
+        $manager = Role::findOrCreate('Finance');
         $member = Role::findOrCreate('Member');
-        $client = Role::findOrCreate('Client');
+        $client = Role::findOrCreate('CS');
 
         // Assign permissions
         $admin->syncPermissions(Permission::all());

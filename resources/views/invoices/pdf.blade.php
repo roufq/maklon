@@ -78,7 +78,7 @@
       <div class="card">
         <div class="card-body">
           <div class="label">Bill To</div>
-          <div style="margin-top:6px; font-weight:600;">{{ $invoice->client_name ?? 'Client' }}</div>
+          <div style="margin-top:6px; font-weight:600;">{{ $invoice->client_name ?? 'CS' }}</div>
           <div style="color:var(--muted);">{{ $invoice->client_email ?? '' }}</div>
         </div>
       </div>

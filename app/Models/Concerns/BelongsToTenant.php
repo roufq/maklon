@@ -11,6 +11,9 @@ class BelongsToTenant implements Scope
 {
     public function apply(Builder $builder, Model $model): void
     {
+        if (!config('features.tenancy')) {
+            return; // do not apply tenant filter when tenancy is disabled
+        }
         $tenantId = TenantManager::getTenantId();
         if ($tenantId) {
             $builder->where($model->getTable().'.tenant_id', $tenantId);
@@ -20,6 +23,7 @@ class BelongsToTenant implements Scope
     public static function bootTenant(Model $model): void
     {
         $model::creating(function ($m) {
+            if (!config('features.tenancy')) { return; }
             $tenantId = TenantManager::getTenantId();
             if ($tenantId && empty($m->tenant_id)) {
                 $m->tenant_id = $tenantId;
@@ -27,4 +31,3 @@ class BelongsToTenant implements Scope
         });
     }
 }
-

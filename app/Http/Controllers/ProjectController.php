@@ -27,7 +27,7 @@ class ProjectController extends Controller
     {
         $teams = Team::all();
         $tenantId = \App\Support\Tenancy\TenantManager::getTenantId();
-        $clients = \App\Models\User::role('Client')
+        $clients = \App\Models\User::role('CS')
             ->when($tenantId, fn($q)=>$q->where('tenant_id',$tenantId))
             ->orderBy('name')->get(['id','name','email']);
         $bpoms = \App\Models\BpomRegistration::orderBy('product_name')->get(['id','product_name','registration_number','status']);
@@ -74,7 +74,7 @@ class ProjectController extends Controller
     {
         $teams = Team::all();
         $tenantId = \App\Support\Tenancy\TenantManager::getTenantId();
-        $clients = \App\Models\User::role('Client')
+        $clients = \App\Models\User::role('CS')
             ->when($tenantId, fn($q)=>$q->where('tenant_id',$tenantId))
             ->orderBy('name')->get(['id','name','email']);
         $bpoms = \App\Models\BpomRegistration::orderBy('product_name')->get(['id','product_name','registration_number','status']);

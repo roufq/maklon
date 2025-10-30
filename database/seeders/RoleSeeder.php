@@ -16,9 +16,10 @@ class RoleSeeder extends Seeder
     {
         // Create Roles
         $adminRole = Role::findOrCreate('Admin');
-        $managerRole = Role::findOrCreate('Manager');
-        $developerRole = Role::findOrCreate('Developer');
-        $clientRole = Role::findOrCreate('Client');
+        // Renamed roles per new terminology
+        $financeRole = Role::findOrCreate('Finance');
+        $productionRole = Role::findOrCreate('Produksi');
+        $csRole = Role::findOrCreate('CS');
         // Maklon-specific roles (optional)
         $productionManagerRole = Role::findOrCreate('ProductionManager');
         $warehouseRole = Role::findOrCreate('Warehouse');
@@ -80,6 +81,12 @@ class RoleSeeder extends Seeder
             'qc.view','qc.create','qc.edit','qc.delete',
             'delivery.view','delivery.create','delivery.edit','delivery.delete',
             'supplier.view','supplier.create','supplier.edit','supplier.delete',
+            // Tickets/chat
+            'tickets.view','tickets.create','tickets.reply','tickets.close',
+            // Boxes management
+            'boxes.view','boxes.create','boxes.edit','boxes.delete',
+            // Messages (generic messaging in context of ticket/project)
+            'messages.view','messages.create',
         ];
 
         foreach ($permissions as $permission) {
@@ -90,8 +97,8 @@ class RoleSeeder extends Seeder
         // Admin gets all permissions
         $adminRole->givePermissionTo(Permission::all());
 
-        // Manager gets most permissions except delete
-        $managerRole->givePermissionTo([
+        // Finance gets most permissions except delete (mirrors previous Manager)
+        $financeRole->givePermissionTo([
             'projects.view', 'projects.create', 'projects.edit',
             'tasks.view', 'tasks.create', 'tasks.edit',
             'team.view', 'team.create', 'team.edit',
@@ -111,17 +118,34 @@ class RoleSeeder extends Seeder
             'qc.view','qc.create','qc.edit',
             'delivery.view','delivery.create','delivery.edit',
             'supplier.view','supplier.create','supplier.edit',
+            // Tickets/chat
+            'tickets.view','tickets.create','tickets.reply','tickets.close',
+            // Boxes: typically view only for Finance
+            'boxes.view',
+            // Messages: view only for Finance
+            'messages.view',
         ]);
 
-        // Developer: only project-related access
-        $developerRole->syncPermissions([
+        // Produksi (replacing Developer): limited project/task access
+        $productionRole->syncPermissions([
             'projects.view',
             'tasks.view', 'tasks.create', 'tasks.edit',
+            // Tickets/chat for collaboration
+            'tickets.view','tickets.reply',
+            // Boxes full management for Produksi
+            'boxes.view','boxes.create','boxes.edit','boxes.delete',
+            // Messages create/view for Produksi
+            'messages.view','messages.create',
         ]);
 
-        // Client: only see projects linked to them
-        $clientRole->syncPermissions([
+        // CS (replacing Client): view and initiate tickets
+        $csRole->syncPermissions([
             'projects.view',
+            'tickets.view','tickets.create','tickets.reply',
+            // Boxes: view only (optional)
+            'boxes.view',
+            // Messages create/view for CS
+            'messages.view','messages.create',
         ]);
 
         // ProductionManager role
@@ -146,4 +170,3 @@ class RoleSeeder extends Seeder
         ]);
     }
 }
-

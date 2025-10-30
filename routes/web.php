@@ -61,31 +61,41 @@ Route::middleware(['auth', App\Http\Middleware\SetTenant::class, App\Http\Middle
     Route::post('bpom/{bpom}/revoke', [App\Http\Controllers\BpomRegistrationController::class, 'revoke'])
         ->name('bpom.revoke')->middleware('permission:bpom.edit');
 
-    // Maklon: Production Batches
-    Route::resource('batches', App\Http\Controllers\ProductionBatchController::class)
-        ->middleware('permission:production.view|production.create|production.edit|production.delete');
+    // Maklon: Production Batches (feature-guarded)
+    if (config('features.production_batches')) {
+        Route::resource('batches', App\Http\Controllers\ProductionBatchController::class)
+            ->middleware('permission:production.view|production.create|production.edit|production.delete');
+    }
 
-    // Maklon: Suppliers
-    Route::resource('suppliers', App\Http\Controllers\SupplierController::class)
-        ->middleware('permission:supplier.view|supplier.create|supplier.edit|supplier.delete');
-    Route::get('suppliers-export', [App\Http\Controllers\SupplierController::class, 'export'])
-        ->name('suppliers.export')->middleware('permission:supplier.view');
+    // Maklon: Suppliers (feature-guarded)
+    if (config('features.suppliers')) {
+        Route::resource('suppliers', App\Http\Controllers\SupplierController::class)
+            ->middleware('permission:supplier.view|supplier.create|supplier.edit|supplier.delete');
+        Route::get('suppliers-export', [App\Http\Controllers\SupplierController::class, 'export'])
+            ->name('suppliers.export')->middleware('permission:supplier.view');
+    }
 
-    // Inventory (MVP)
-    Route::resource('inventory', App\Http\Controllers\InventoryController::class)
-        ->middleware('permission:inventory.view|inventory.create|inventory.edit|inventory.delete');
-    Route::post('inventory/{inventory}/movement', [App\Http\Controllers\InventoryController::class, 'movement'])
-        ->name('inventory.movement')->middleware('permission:inventory.edit');
+    // Inventory (MVP, feature-guarded)
+    if (config('features.inventory')) {
+        Route::resource('inventory', App\Http\Controllers\InventoryController::class)
+            ->middleware('permission:inventory.view|inventory.create|inventory.edit|inventory.delete');
+        Route::post('inventory/{inventory}/movement', [App\Http\Controllers\InventoryController::class, 'movement'])
+            ->name('inventory.movement')->middleware('permission:inventory.edit');
+    }
 
-    // BOM (v1 JSON)
-    Route::resource('boms', App\Http\Controllers\BomController::class)
-        ->middleware('permission:inventory.view|inventory.create|inventory.edit|inventory.delete');
+    // BOM (v1 JSON, feature-guarded)
+    if (config('features.boms')) {
+        Route::resource('boms', App\Http\Controllers\BomController::class)
+            ->middleware('permission:inventory.view|inventory.create|inventory.edit|inventory.delete');
+    }
 
-    // Work Stations (capacity planning assets)
-    Route::resource('work-stations', App\Http\Controllers\WorkStationController::class)
-        ->except(['index','show'])->middleware('permission:production.create|production.edit|production.delete');
-    Route::resource('work-stations', App\Http\Controllers\WorkStationController::class)
-        ->only(['index','show'])->middleware('permission:production.view');
+    // Work Stations (capacity planning assets, feature-guarded)
+    if (config('features.work_stations')) {
+        Route::resource('work-stations', App\Http\Controllers\WorkStationController::class)
+            ->except(['index','show'])->middleware('permission:production.create|production.edit|production.delete');
+        Route::resource('work-stations', App\Http\Controllers\WorkStationController::class)
+            ->only(['index','show'])->middleware('permission:production.view');
+    }
 
     // Quality Control
     Route::prefix('quality')->name('quality.')->group(function(){
@@ -195,6 +205,30 @@ Route::middleware(['auth', App\Http\Middleware\SetTenant::class, App\Http\Middle
     Route::delete('calendar/events/{event}', [App\Http\Controllers\CalendarController::class, 'destroy'])->name('calendar.events.destroy')->middleware('permission:calendar.delete');
     Route::get('calendar/api/events', [App\Http\Controllers\CalendarController::class, 'getEvents'])->name('calendar.api.events')->middleware('permission:calendar.view');
     Route::post('calendar/api/events', [App\Http\Controllers\CalendarController::class, 'storeEvent'])->name('calendar.api.storeEvent')->middleware('permission:calendar.create');
+
+    // Tickets & Chat (per-project with queueing)
+    Route::resource('tickets', App\Http\Controllers\TicketController::class)
+        ->except(['index','show'])->middleware('permission:tickets.create|tickets.reply|tickets.close');
+    Route::resource('tickets', App\Http\Controllers\TicketController::class)
+        ->only(['index','show'])->middleware('permission:tickets.view');
+    Route::post('tickets/{ticket}/close', [App\Http\Controllers\TicketController::class, 'close'])
+        ->name('tickets.close')->middleware('permission:tickets.close');
+    Route::post('tickets/{ticket}/messages', [App\Http\Controllers\TicketMessageController::class, 'store'])
+        ->name('tickets.messages.store')->middleware('permission:tickets.reply');
+
+    // Messages (generic, context-bound to ticket or project)
+    Route::get('messages', [App\Http\Controllers\MessageController::class, 'index'])->name('messages.index')->middleware('permission:messages.view');
+    Route::post('messages', [App\Http\Controllers\MessageController::class, 'store'])->name('messages.store')->middleware('permission:messages.create');
+
+    // Box Types
+    Route::resource('box-types', App\Http\Controllers\BoxTypeController::class)
+        ->except(['index'])->middleware('permission:boxes.create|boxes.edit|boxes.delete');
+    Route::resource('box-types', App\Http\Controllers\BoxTypeController::class)
+        ->only(['index'])->middleware('permission:boxes.view');
+
+    // Project Boxes
+    Route::resource('project-boxes', App\Http\Controllers\ProjectBoxController::class)
+        ->except(['show','index'])->middleware('permission:boxes.create|boxes.edit|boxes.delete');
 
     // Additional notification routes
     Route::patch('notifications/{notification}/mark-as-read', [App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('notifications.markAsRead')->middleware('permission:notifications.update');
@@ -314,9 +348,11 @@ Route::middleware(['auth', App\Http\Middleware\SetTenant::class, App\Http\Middle
     // Admin: User management (Admin only)
     Route::middleware('role:Admin')->prefix('admin')->name('admin.')->group(function () {
         Route::resource('users', App\Http\Controllers\Admin\UserController::class)->except(['show']);
-        Route::get('tenants', [App\Http\Controllers\Admin\TenantController::class, 'index'])->name('tenants.index');
-        Route::post('tenants', [App\Http\Controllers\Admin\TenantController::class, 'store'])->name('tenants.store');
-        Route::post('tenants/switch', [App\Http\Controllers\Admin\TenantController::class, 'switch'])->name('tenants.switch');
+        if (config('features.tenancy')) {
+            Route::get('tenants', [App\Http\Controllers\Admin\TenantController::class, 'index'])->name('tenants.index');
+            Route::post('tenants', [App\Http\Controllers\Admin\TenantController::class, 'store'])->name('tenants.store');
+            Route::post('tenants/switch', [App\Http\Controllers\Admin\TenantController::class, 'switch'])->name('tenants.switch');
+        }
     });
 });
 
@@ -396,10 +432,3 @@ if (!config('features.comments')) {
     Route::post('comments', fn()=>abort(404))->name('comments.store');
     Route::delete('comments/{comment}', fn()=>abort(404))->name('comments.destroy');
 }
-
-
-
-
-
-
-

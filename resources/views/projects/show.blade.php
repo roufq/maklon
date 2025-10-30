@@ -26,8 +26,11 @@
     <div class="row mb-4">
         <div class="col-lg-8">
             <div class="card border-0 shadow-sm">
-                <div class="card-header bg-light">
+                <div class="card-header bg-light d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">Project Information</h5>
+                    @can('messages.view')
+                    <a class="btn btn-sm btn-outline-info" href="{{ route('messages.index',['project_id'=>$project->id]) }}">Open Messages</a>
+                    @endcan
                 </div>
                 <div class="card-body">
                     <div class="row">
@@ -197,6 +200,75 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Project Boxes Section -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Project Boxes</h5>
+            <div>
+                @can('production.create')
+                <a href="{{ route('project-boxes.create', ['project_id' => $project->id]) }}" class="btn btn-sm btn-primary">
+                    <i class="bi bi-plus-circle me-2"></i>Tambah Project Box
+                </a>
+                <a href="{{ route('box-types.index') }}" class="btn btn-sm btn-outline-secondary">Kelola Box Types</a>
+                @endcan
+            </div>
+        </div>
+        <div class="card-body">
+            @if($project->projectBoxes->count() > 0)
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Type</th>
+                                <th>Size</th>
+                                <th>Shape</th>
+                                <th>Mockup</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($project->projectBoxes as $b)
+                            <tr>
+                                <td>{{ optional($b->boxType)->name }}</td>
+                                <td>{{ $b->size }}</td>
+                                <td>{{ $b->shape }}</td>
+                                <td>
+                                    @if($b->mockup_path)
+                                        <a target="_blank" href="{{ asset('storage/'.$b->mockup_path) }}">Lihat</a>
+                                    @else
+                                        <span class="text-muted">-</span>
+                                    @endif
+                                </td>
+                                <td>
+                                    @can('production.edit')
+                                    <a href="{{ route('project-boxes.edit',$b) }}" class="btn btn-sm btn-outline-secondary">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    @endcan
+                                    @can('production.delete')
+                                    <form method="post" action="{{ route('project-boxes.destroy',$b) }}" style="display:inline-block;">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Hapus Project Box?')">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                    @endcan
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @else
+                <div class="text-center py-4">
+                    <i class="bi bi-box text-muted fs-1 mb-3"></i>
+                    <h6 class="text-muted">Belum ada data box</h6>
+                </div>
+            @endif
         </div>
     </div>
 

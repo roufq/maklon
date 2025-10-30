@@ -28,7 +28,7 @@ class DeliveryController extends Controller
         $this->c();
         $projects = Project::orderBy('name')->get(['id','name']);
         $batches = ProductionBatch::where('qc_status','passed')->orderByDesc('id')->get(['id','batch_number']);
-        $customers = User::role('Client')->orderBy('name')->get(['id','name']);
+        $customers = User::role('CS')->orderBy('name')->get(['id','name']);
         return view('deliveries.create', compact('projects','batches','customers'));
     }
 
@@ -76,7 +76,7 @@ class DeliveryController extends Controller
         $this->e();
         $projects = Project::orderBy('name')->get(['id','name']);
         $batches = ProductionBatch::orderByDesc('id')->get(['id','batch_number','qc_status']);
-        $customers = User::role('Client')->orderBy('name')->get(['id','name']);
+        $customers = User::role('CS')->orderBy('name')->get(['id','name']);
         return view('deliveries.edit', compact('delivery','projects','batches','customers'));
     }
 

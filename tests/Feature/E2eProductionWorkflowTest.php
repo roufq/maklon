@@ -86,7 +86,7 @@ class E2eProductionWorkflowTest extends TestCase
 
         // 5. Create delivery
         $customer = User::factory()->create();
-        $customer->assignRole('Client');
+        $customer->assignRole('CS');
 
         $delivery = Delivery::factory()->create([
             'project_id' => $this->project->id,
@@ -114,7 +114,7 @@ class E2eProductionWorkflowTest extends TestCase
         ]);
 
         $customer = User::factory()->create();
-        $customer->assignRole('Client');
+        $customer->assignRole('CS');
 
         // Attempt delivery creation
         $response = $this->post(route('deliveries.store'), [
